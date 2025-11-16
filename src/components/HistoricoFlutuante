@@ -63,4 +63,4 @@ export default function HistoricoFlutuante({items = [], visible = true}) {
       </div>
     </div>
   );
-}
+} 
