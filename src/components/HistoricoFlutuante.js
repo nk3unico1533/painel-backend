@@ -1,0 +1,66 @@
+"use client";
+import React, { useEffect, useRef, useState } from "react";
+
+export default function HistoricoFlutuante({items = [], visible = true}) {
+  const [pos, setPos] = useState({right:18,bottom:18});
+  const ref = useRef();
+
+  // allow dragging
+  useEffect(()=>{
+    const el = ref.current;
+    if(!el) return;
+    let dragging=false, startX=0, startY=0, startR=0, startB=0;
+    const down = (e)=>{
+      dragging=true;
+      startX = e.touches ? e.touches[0].clientX : e.clientX;
+      startY = e.touches ? e.touches[0].clientY : e.clientY;
+      startR = pos.right;
+      startB = pos.bottom;
+      el.style.cursor="grabbing";
+    };
+    const move = (e)=>{
+      if(!dragging) return;
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      const dx = startX - x;
+      const dy = startY - y;
+      setPos({ right: Math.max(8, Math.round(startR + dx)), bottom: Math.max(8, Math.round(startB + dy))});
+    };
+    const up = ()=>{ dragging=false; el.style.cursor="grab"; };
+    el.addEventListener("mousedown", down);
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+    el.addEventListener("touchstart", down);
+    window.addEventListener("touchmove", move);
+    window.addEventListener("touchend", up);
+    return ()=>{
+      el.removeEventListener("mousedown", down);
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", up);
+      el.removeEventListener("touchstart", down);
+      window.removeEventListener("touchmove", move);
+      window.removeEventListener("touchend", up);
+    };
+  }, [pos]);
+
+  if(!visible) return null;
+
+  return (
+    <div ref={ref} className="float-block card" style={{right: pos.right, bottom: pos.bottom}}>
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+        <div style={{fontWeight:700, color:"white"}}>Últimas 4</div>
+        <div style={{fontSize:12, color:"var(--muted)"}}>📜</div>
+      </div>
+
+      <div>
+        {items.slice(0,4).map((it, idx)=>(
+          <div className="history-item" key={idx}>
+            <div style={{fontSize:13}}><strong>{it.tipo}</strong> — {it.valor}</div>
+            <div style={{fontSize:12, color:"var(--muted)"}}>{new Date(it.criadoEm).toLocaleString()}</div>
+          </div>
+        ))}
+        {items.length === 0 && <div style={{fontSize:13, color:"var(--muted)"}}>Sem consultas</div>}
+      </div>
+    </div>
+  );
+} 
